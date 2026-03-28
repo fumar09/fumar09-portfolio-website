@@ -406,7 +406,7 @@ p {
 
 .signal-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
   margin-top: 2.3rem;
 }
@@ -440,6 +440,13 @@ p {
   border: 1px solid var(--line);
   background: var(--surface-strong);
   box-shadow: var(--shadow);
+}
+
+.credential-card {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(249, 245, 238, 0.98)),
+    linear-gradient(135deg, rgba(31, 93, 80, 0.06), transparent 45%);
 }
 
 .portrait-frame {
@@ -479,6 +486,64 @@ p {
 .portrait-copy p:last-child,
 .credential-card p {
   margin-top: 0.75rem;
+}
+
+.credential-card .eyebrow {
+  margin-top: 0;
+}
+
+.credential-layout {
+  display: grid;
+  grid-template-columns: minmax(150px, 176px) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.credential-badge-wrap {
+  display: block;
+  padding: 0.9rem;
+  border-radius: 22px;
+  border: 1px solid rgba(31, 93, 80, 0.12);
+  background:
+    radial-gradient(circle at top, rgba(31, 93, 80, 0.12), transparent 62%),
+    rgba(255, 255, 255, 0.88);
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.credential-badge-wrap:hover,
+.credential-badge-wrap:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(31, 93, 80, 0.22);
+  box-shadow: var(--shadow-soft);
+}
+
+.credential-badge {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 18px;
+}
+
+.credential-badge-note {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 38px;
+  margin-top: 0.8rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(31, 93, 80, 0.08);
+  color: var(--accent-strong);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.credential-body {
+  min-width: 0;
 }
 
 .credential-meta {
@@ -524,6 +589,17 @@ p {
 .priority-list li,
 .question-list li {
   margin-bottom: 0.65rem;
+}
+
+.credential-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.15rem;
+}
+
+.credential-button {
+  min-height: 48px;
 }
 
 .hero-note {
@@ -727,7 +803,7 @@ p {
 
 .case-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1.2rem;
   margin-top: 1.2rem;
 }
@@ -948,6 +1024,14 @@ button:focus-visible {
     grid-template-columns: 1fr;
   }
 
+  .credential-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .credential-badge-wrap {
+    max-width: 220px;
+  }
+
   .principle-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -994,6 +1078,10 @@ button:focus-visible {
     flex-direction: column;
   }
 
+  .credential-actions {
+    flex-direction: column;
+  }
+
   .button {
     width: 100%;
   }
@@ -1006,6 +1094,10 @@ button:focus-visible {
 
   .principle-grid {
     grid-template-columns: 1fr;
+  }
+
+  .credential-badge-wrap {
+    max-width: none;
   }
 }
 
