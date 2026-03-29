@@ -142,9 +142,113 @@ class RevealController {
     }
 }
 
+class ContactBuilder {
+    constructor() {
+        this.form = document.getElementById('contactBuilder');
+        this.nameInput = document.getElementById('contactName');
+        this.projectType = document.getElementById('contactProjectType');
+        this.timeline = document.getElementById('contactTimeline');
+        this.goal = document.getElementById('contactGoal');
+        this.preview = document.getElementById('contactPreviewText');
+        this.copyButton = document.getElementById('copyProjectBrief');
+        this.chips = Array.from(document.querySelectorAll('.contact-chip'));
+        this.copyTimeout = null;
+
+        this.init();
+    }
+
+    init() {
+        if (!this.form || !this.preview || !this.copyButton) {
+            return;
+        }
+
+        [this.nameInput, this.projectType, this.timeline, this.goal].forEach((field) => {
+            if (!field) {
+                return;
+            }
+
+            const eventName = field.tagName === 'SELECT' ? 'change' : 'input';
+            field.addEventListener(eventName, () => {
+                if (field === this.goal) {
+                    this.clearChipSelection();
+                }
+                this.updatePreview();
+            });
+        });
+
+        this.chips.forEach((chip) => {
+            chip.addEventListener('click', () => {
+                const value = chip.getAttribute('data-chip-value') || '';
+                if (this.goal) {
+                    this.goal.value = value;
+                }
+
+                this.chips.forEach((item) => item.classList.toggle('is-selected', item === chip));
+                this.updatePreview();
+            });
+        });
+
+        this.copyButton.addEventListener('click', () => this.copyPreview());
+        this.updatePreview();
+    }
+
+    clearChipSelection() {
+        this.chips.forEach((chip) => chip.classList.remove('is-selected'));
+    }
+
+    buildMessage() {
+        const name = this.nameInput?.value.trim();
+        const type = this.projectType?.value || 'Website cleanup';
+        const timeline = this.timeline?.value || 'Flexible';
+        const goal = this.goal?.value.trim();
+        const opening = name ? `Hello Connie, I'm ${name}.` : 'Hello Connie,';
+        const normalizedGoal = goal ? goal.replace(/\s+/g, ' ').replace(/[.!?]+$/, '') : 'make the interface cleaner, more organized, and easier to use';
+
+        return `${opening} I need help with a ${type} project. My timeline is ${timeline.toLowerCase()}. The main thing I want to improve is ${normalizedGoal}.`;
+    }
+
+    updatePreview() {
+        if (!this.preview) {
+            return;
+        }
+
+        this.preview.textContent = this.buildMessage();
+    }
+
+    async copyPreview() {
+        const message = this.buildMessage();
+
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(message);
+            } else {
+                const helper = document.createElement('textarea');
+                helper.value = message;
+                document.body.appendChild(helper);
+                helper.select();
+                document.execCommand('copy');
+                helper.remove();
+            }
+
+            this.copyButton.textContent = 'Copied';
+            window.clearTimeout(this.copyTimeout);
+            this.copyTimeout = window.setTimeout(() => {
+                this.copyButton.textContent = 'Copy and Send Brief';
+            }, 1800);
+        } catch (error) {
+            this.copyButton.textContent = 'Copy failed';
+            window.clearTimeout(this.copyTimeout);
+            this.copyTimeout = window.setTimeout(() => {
+                this.copyButton.textContent = 'Copy and Send Brief';
+            }, 1800);
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     new SiteNavigation();
     new RevealController();
+    new ContactBuilder();
 
     const year = document.getElementById('currentYear');
     if (year) {
