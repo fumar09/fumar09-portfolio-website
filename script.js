@@ -1,104 +1,108 @@
-class SiteNavigation {
-    constructor() {
-        this.header = document.querySelector('.site-header');
-        this.nav = document.getElementById('siteNav');
-        this.toggle = document.querySelector('.menu-toggle');
-        this.links = Array.from(document.querySelectorAll('.nav-link'));
-        this.sections = Array.from(document.querySelectorAll('main section[id]'));
-        this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const prefersReducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-        this.init();
-    }
+function prefersReducedMotion() {
+    return prefersReducedMotionQuery.matches;
+}
 
-    init() {
-        this.bindToggle();
-        this.bindLinks();
-        this.bindOutsideClick();
-        this.updateActiveLink();
+function rafThrottle(callback) {
+    let scheduled = false;
+    let latestArgs = [];
 
-        window.addEventListener('scroll', () => this.updateActiveLink(), { passive: true });
-        window.addEventListener('resize', () => this.handleResize());
-    }
+    return (...args) => {
+        latestArgs = args;
 
-    bindToggle() {
-        if (!this.toggle || !this.nav) {
+        if (scheduled) {
             return;
         }
 
-        this.toggle.addEventListener('click', () => {
-            const isOpen = this.toggle.getAttribute('aria-expanded') === 'true';
-            this.toggle.setAttribute('aria-expanded', String(!isOpen));
-            this.nav.classList.toggle('is-open', !isOpen);
+        scheduled = true;
+        window.requestAnimationFrame(() => {
+            scheduled = false;
+            callback(...latestArgs);
         });
+    };
+}
+
+function easeOutQuint(progress) {
+    return 1 - Math.pow(1 - progress, 5);
+}
+
+function smoothScrollToTarget(target, offset = 0) {
+    const start = window.scrollY;
+    const destination = Math.max(0, start + target.getBoundingClientRect().top - offset);
+
+    if (prefersReducedMotion()) {
+        window.scrollTo({ top: destination, behavior: 'auto' });
+        return Promise.resolve();
     }
 
-    bindLinks() {
-        this.links.forEach((link) => {
-            link.addEventListener('click', (event) => {
-                const href = link.getAttribute('href');
-                if (!href || !href.startsWith('#')) {
-                    return;
-                }
-
-                const target = document.querySelector(href);
-                if (!target) {
-                    return;
-                }
-
-                event.preventDefault();
-                target.scrollIntoView({
-                    behavior: this.prefersReducedMotion ? 'auto' : 'smooth',
-                    block: 'start'
-                });
-
-                this.closeMenu();
-            });
-        });
+    const distance = destination - start;
+    if (Math.abs(distance) < 2) {
+        window.scrollTo({ top: destination, behavior: 'auto' });
+        return Promise.resolve();
     }
 
-    bindOutsideClick() {
-        document.addEventListener('click', (event) => {
-            if (!this.nav || !this.toggle) {
+    const duration = Math.min(1100, Math.max(560, Math.abs(distance) * 0.55));
+
+    return new Promise((resolve) => {
+        let startTime = null;
+
+        const step = (timestamp) => {
+            if (startTime === null) {
+                startTime = timestamp;
+            }
+
+            const elapsed = timestamp - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = easeOutQuint(progress);
+
+            window.scrollTo({ top: start + distance * eased, behavior: 'auto' });
+
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
                 return;
             }
 
-            const clickedInsideNav = this.nav.contains(event.target);
-            const clickedToggle = this.toggle.contains(event.target);
+            resolve();
+        };
 
-            if (!clickedInsideNav && !clickedToggle) {
-                this.closeMenu();
-            }
-        });
-    }
+        window.requestAnimationFrame(step);
+    });
+}
 
-    handleResize() {
-        if (window.innerWidth > 860) {
-            this.closeMenu();
-        }
-    }
+function setupNavigation() {
+    const header = document.querySelector('.site-header');
+    const nav = document.getElementById('siteNav');
+    const toggle = document.querySelector('.menu-toggle');
+    const navLinks = Array.from(document.querySelectorAll('.nav-link[href^="#"]'));
+    const scrollLinks = Array.from(document.querySelectorAll('a[href^="#"]:not([href="#"])')).filter((link) => {
+        const selector = link.getAttribute('href');
+        return selector && document.querySelector(selector);
+    });
+    const sections = navLinks
+        .map((link) => document.querySelector(link.getAttribute('href')))
+        .filter(Boolean);
 
-    closeMenu() {
-        if (!this.nav || !this.toggle) {
+    const closeMenu = () => {
+        if (!nav || !toggle) {
             return;
         }
 
-        this.nav.classList.remove('is-open');
-        this.toggle.setAttribute('aria-expanded', 'false');
-    }
+        nav.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+    };
 
-    updateActiveLink() {
-        const offset = this.header ? this.header.offsetHeight + 24 : 110;
-        const scrollPosition = window.scrollY + offset;
-        let currentId = this.sections[0]?.id || '';
+    const setHeaderState = () => {
+        if (!header) {
+            return;
+        }
 
-        this.sections.forEach((section) => {
-            if (scrollPosition >= section.offsetTop) {
-                currentId = section.id;
-            }
-        });
+        header.classList.toggle('is-scrolled', window.scrollY > 12);
+    };
 
-        this.links.forEach((link) => {
-            const isActive = link.getAttribute('href') === `#${currentId}`;
+    const activateLinkById = (id) => {
+        navLinks.forEach((link) => {
+            const isActive = link.getAttribute('href') === `#${id}`;
             link.classList.toggle('is-active', isActive);
 
             if (isActive) {
@@ -107,116 +111,223 @@ class SiteNavigation {
                 link.removeAttribute('aria-current');
             }
         });
-    }
-}
+    };
 
-class RevealController {
-    constructor() {
-        this.elements = Array.from(document.querySelectorAll('.reveal'));
-        this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const updateActiveLink = () => {
+        setHeaderState();
 
-        this.init();
-    }
+        const activationLine = Math.max((header?.offsetHeight || 0) + 28, window.innerHeight * 0.32);
+        let currentId = sections[0]?.id || '';
 
-    init() {
-        if (this.prefersReducedMotion || !('IntersectionObserver' in window)) {
-            this.elements.forEach((element) => element.classList.add('is-visible'));
-            return;
-        }
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (!entry.isIntersecting) {
-                    return;
-                }
-
-                entry.target.classList.add('is-visible');
-                observer.unobserve(entry.target);
-            });
-        }, {
-            threshold: 0.12,
-            rootMargin: '0px 0px -40px 0px'
+        sections.forEach((section) => {
+            const rect = section.getBoundingClientRect();
+            if (rect.top <= activationLine) {
+                currentId = section.id;
+            }
         });
 
-        this.elements.forEach((element) => observer.observe(element));
-    }
-}
+        activateLinkById(currentId);
+    };
 
-class ContactBuilder {
-    constructor() {
-        this.form = document.getElementById('contactBuilder');
-        this.nameInput = document.getElementById('contactName');
-        this.projectType = document.getElementById('contactProjectType');
-        this.timeline = document.getElementById('contactTimeline');
-        this.goal = document.getElementById('contactGoal');
-        this.preview = document.getElementById('contactPreviewText');
-        this.copyButton = document.getElementById('copyProjectBrief');
-        this.chips = Array.from(document.querySelectorAll('.contact-chip'));
-        this.copyTimeout = null;
-
-        this.init();
-    }
-
-    init() {
-        if (!this.form || !this.preview || !this.copyButton) {
+    const handleAnchorClick = async (event) => {
+        const link = event.currentTarget;
+        if (!(link instanceof HTMLAnchorElement)) {
             return;
         }
 
-        [this.nameInput, this.projectType, this.timeline, this.goal].forEach((field) => {
-            if (!field) {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+            return;
+        }
+
+        const targetSelector = link.getAttribute('href');
+        if (!targetSelector) {
+            return;
+        }
+
+        const target = document.querySelector(targetSelector);
+        if (!target) {
+            return;
+        }
+
+        event.preventDefault();
+        closeMenu();
+
+        const offset = (header?.offsetHeight || 0) + 18;
+        await smoothScrollToTarget(target, offset);
+
+        try {
+            if (window.history?.replaceState) {
+                window.history.replaceState(null, '', targetSelector);
+            } else {
+                window.location.hash = targetSelector;
+            }
+        } catch (error) {
+            window.location.hash = targetSelector;
+        }
+
+        if (target.id) {
+            activateLinkById(target.id);
+        }
+    };
+
+    if (toggle && nav) {
+        toggle.addEventListener('click', () => {
+            const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+            toggle.setAttribute('aria-expanded', String(!isOpen));
+            nav.classList.toggle('is-open', !isOpen);
+        });
+    }
+
+    scrollLinks.forEach((link) => {
+        link.addEventListener('click', handleAnchorClick);
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!nav || !toggle) {
+            return;
+        }
+
+        if (nav.contains(event.target) || toggle.contains(event.target)) {
+            return;
+        }
+
+        closeMenu();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeMenu();
+        }
+    });
+
+    const syncViewportState = rafThrottle(() => {
+        updateActiveLink();
+    });
+
+    updateActiveLink();
+
+    window.addEventListener('load', () => {
+        const hashId = window.location.hash.replace('#', '');
+        if (hashId && navLinks.some((link) => link.getAttribute('href') === `#${hashId}`)) {
+            activateLinkById(hashId);
+        } else {
+            updateActiveLink();
+        }
+    });
+
+    window.addEventListener('hashchange', () => {
+        const hashId = window.location.hash.replace('#', '');
+        if (hashId && navLinks.some((link) => link.getAttribute('href') === `#${hashId}`)) {
+            activateLinkById(hashId);
+            return;
+        }
+
+        updateActiveLink();
+    });
+
+    window.addEventListener('scroll', syncViewportState, { passive: true });
+    window.addEventListener('resize', rafThrottle(() => {
+        if (window.innerWidth > 860) {
+            closeMenu();
+        }
+
+        updateActiveLink();
+    }));
+}
+
+function setupReveal() {
+    const elements = Array.from(document.querySelectorAll('.reveal'));
+
+    elements.forEach((element, index) => {
+        element.style.setProperty('--reveal-delay', `${Math.min(index % 4, 3) * 70}ms`);
+    });
+
+    if (prefersReducedMotion() || !('IntersectionObserver' in window)) {
+        elements.forEach((element) => element.classList.add('is-visible'));
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) {
                 return;
             }
 
-            const eventName = field.tagName === 'SELECT' ? 'change' : 'input';
-            field.addEventListener(eventName, () => {
-                if (field === this.goal) {
-                    this.clearChipSelection();
-                }
-                this.updatePreview();
-            });
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
         });
+    }, {
+        threshold: 0.16,
+        rootMargin: '0px 0px -12% 0px'
+    });
 
-        this.chips.forEach((chip) => {
-            chip.addEventListener('click', () => {
-                const value = chip.getAttribute('data-chip-value') || '';
-                if (this.goal) {
-                    this.goal.value = value;
-                }
+    elements.forEach((element) => observer.observe(element));
+}
 
-                this.chips.forEach((item) => item.classList.toggle('is-selected', item === chip));
-                this.updatePreview();
-            });
-        });
+function setupContactBuilder() {
+    const nameInput = document.getElementById('contactName');
+    const projectType = document.getElementById('contactProjectType');
+    const timeline = document.getElementById('contactTimeline');
+    const goal = document.getElementById('contactGoal');
+    const preview = document.getElementById('contactPreviewText');
+    const copyButton = document.getElementById('copyProjectBrief');
+    const chips = Array.from(document.querySelectorAll('.contact-chip'));
+    let copyTimeout = null;
 
-        this.copyButton.addEventListener('click', () => this.copyPreview());
-        this.updatePreview();
+    if (!preview || !copyButton) {
+        return;
     }
 
-    clearChipSelection() {
-        this.chips.forEach((chip) => chip.classList.remove('is-selected'));
-    }
+    const clearChipSelection = () => {
+        chips.forEach((chip) => chip.classList.remove('is-selected'));
+    };
 
-    buildMessage() {
-        const name = this.nameInput?.value.trim();
-        const type = this.projectType?.value || 'Website cleanup';
-        const timeline = this.timeline?.value || 'Flexible';
-        const goal = this.goal?.value.trim();
-        const opening = name ? `Hello Connie, I'm ${name}.` : 'Hello Connie,';
-        const normalizedGoal = goal ? goal.replace(/\s+/g, ' ').replace(/[.!?]+$/, '') : 'make the interface cleaner, more organized, and easier to use';
+    const normalizeGoal = (value) => {
+        const trimmed = value.trim().replace(/\s+/g, ' ');
+        return trimmed.replace(/[.!?]+$/, '');
+    };
 
-        return `${opening} I need help with a ${type} project. My timeline is ${timeline.toLowerCase()}. The main thing I want to improve is ${normalizedGoal}.`;
-    }
+    const buildMessage = () => {
+        const name = nameInput?.value.trim();
+        const project = projectType?.value || 'a UI/UX redesign';
+        const timing = timeline?.value || 'flexible';
+        const goalText = normalizeGoal(goal?.value || '');
+        const opening = name ? `Hello Connie, I am ${name}.` : 'Hello Connie,';
+        const mainGoal = goalText || 'making the layout cleaner and more professional';
 
-    updatePreview() {
-        if (!this.preview) {
+        return `${opening} I am interested in ${project} and I would like help with ${mainGoal}. My timeline is ${timing}.`;
+    };
+
+    [nameInput, projectType, timeline, goal].forEach((field) => {
+        if (!field) {
             return;
         }
 
-        this.preview.textContent = this.buildMessage();
-    }
+        const eventName = field.tagName === 'SELECT' ? 'change' : 'input';
+        field.addEventListener(eventName, () => {
+            if (field === goal) {
+                clearChipSelection();
+            }
 
-    async copyPreview() {
-        const message = this.buildMessage();
+            preview.textContent = buildMessage();
+        });
+    });
+
+    chips.forEach((chip) => {
+        chip.addEventListener('click', () => {
+            const value = chip.getAttribute('data-chip-value') || '';
+
+            if (goal) {
+                goal.value = value;
+            }
+
+            chips.forEach((item) => item.classList.toggle('is-selected', item === chip));
+            preview.textContent = buildMessage();
+        });
+    });
+
+    copyButton.addEventListener('click', async () => {
+        const message = buildMessage();
 
         try {
             if (navigator.clipboard?.writeText) {
@@ -230,55 +341,67 @@ class ContactBuilder {
                 helper.remove();
             }
 
-            this.copyButton.textContent = 'Copied';
-            window.clearTimeout(this.copyTimeout);
-            this.copyTimeout = window.setTimeout(() => {
-                this.copyButton.textContent = 'Copy and Send Brief';
-            }, 1800);
+            copyButton.textContent = 'Copied';
         } catch (error) {
-            this.copyButton.textContent = 'Copy failed';
-            window.clearTimeout(this.copyTimeout);
-            this.copyTimeout = window.setTimeout(() => {
-                this.copyButton.textContent = 'Copy and Send Brief';
-            }, 1800);
+            copyButton.textContent = 'Copy failed';
         }
+
+        window.clearTimeout(copyTimeout);
+        copyTimeout = window.setTimeout(() => {
+            copyButton.textContent = 'Copy Project Brief';
+        }, 1800);
+    });
+
+    preview.textContent = buildMessage();
+}
+
+function setupFloatingCta() {
+    const floatingCta = document.querySelector('.floating-cta');
+    const contactSection = document.getElementById('contact');
+    let contactVisible = false;
+
+    if (!floatingCta) {
+        return;
     }
+
+    const toggleVisibility = () => {
+        const shouldShow = window.innerWidth > 620
+            && window.scrollY > Math.max(220, window.innerHeight * 0.48)
+            && !contactVisible;
+
+        floatingCta.classList.toggle('is-visible', shouldShow);
+    };
+
+    if (contactSection && 'IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.target !== contactSection) {
+                    return;
+                }
+
+                contactVisible = entry.isIntersecting;
+                toggleVisibility();
+            });
+        }, {
+            threshold: 0.22
+        });
+
+        observer.observe(contactSection);
+    }
+
+    toggleVisibility();
+    window.addEventListener('scroll', rafThrottle(toggleVisibility), { passive: true });
+    window.addEventListener('resize', rafThrottle(toggleVisibility));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    new SiteNavigation();
-    new RevealController();
-    new ContactBuilder();
+    setupNavigation();
+    setupReveal();
+    setupContactBuilder();
+    setupFloatingCta();
 
     const year = document.getElementById('currentYear');
     if (year) {
         year.textContent = String(new Date().getFullYear());
     }
 });
-
-const utils = {
-    debounce: (fn, wait) => {
-        let timeoutId;
-
-        return (...args) => {
-            window.clearTimeout(timeoutId);
-            timeoutId = window.setTimeout(() => fn(...args), wait);
-        };
-    },
-
-    throttle: (fn, wait) => {
-        let lastRun = 0;
-
-        return (...args) => {
-            const now = Date.now();
-            if (now - lastRun < wait) {
-                return;
-            }
-
-            lastRun = now;
-            fn(...args);
-        };
-    }
-};
-
-window.portfolioUtils = utils;
