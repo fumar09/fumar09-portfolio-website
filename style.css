@@ -1775,7 +1775,7 @@ p {
   font-size: 0.9rem;
 }
 
-#expertise {
+#tools {
   padding-top: 1.5rem;
 }
 
@@ -1799,7 +1799,7 @@ p {
 #work .section-head .eyebrow::before { content: "02 / "; }
 #education .section-head .eyebrow::before { content: "03 / "; }
 #credentials .section-head .eyebrow::before { content: "04 / "; }
-#expertise .section-head .eyebrow::before { content: "05 / "; }
+#special-skills .section-head .eyebrow::before { content: "05 / "; }
 #organizations .section-head .eyebrow::before { content: "06 / "; }
 #resume .resume-copy .eyebrow::before { content: "07 / "; color: rgba(25, 26, 23, 0.58); }
 #contact .contact-copy .eyebrow::before { content: "08 / "; color: rgba(241, 240, 232, 0.55); }
@@ -2624,5 +2624,144 @@ a.certificate-preview {
     align-items: flex-start;
     justify-content: center;
     gap: 0.35rem;
+  }
+}
+
+.header-row {
+  grid-template-columns: minmax(180px, 1fr) auto auto auto;
+}
+
+.theme-toggle {
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: color var(--motion-fast) ease, border-color var(--motion-fast) ease, background-color var(--motion-fast) ease;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+.theme-icon {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.theme-icon-moon,
+:root[data-theme="light"] .theme-icon-sun {
+  display: none;
+}
+
+:root[data-theme="light"] .theme-icon-moon {
+  display: block;
+}
+
+.tool-ribbon .tool-pill {
+  min-height: 32px;
+  padding: 0.48rem 0.75rem 0.48rem 0;
+  font-size: 0.61rem;
+  line-height: 1.35;
+}
+
+.footer-socials svg,
+.social-link svg {
+  width: 18px;
+  height: 18px;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f3ef;
+  --bg-alt: #e9eae4;
+  --surface: #fbfbf7;
+  --surface-strong: #ffffff;
+  --surface-dark: #e1e3dc;
+  --line: rgba(31, 33, 28, 0.12);
+  --line-strong: rgba(31, 33, 28, 0.24);
+  --text: #20211c;
+  --text-soft: #55574f;
+  --text-muted: #72746b;
+  --brand: #526b19;
+  --brand-strong: #405510;
+  --mint: #78913a;
+  --coral: #a75532;
+  --glow: rgba(82, 107, 25, 0.12);
+  --shadow: 0 28px 70px rgba(28, 31, 24, 0.12);
+  --shadow-soft: 0 12px 34px rgba(28, 31, 24, 0.08);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] body {
+  color: var(--text);
+  background: var(--bg);
+}
+
+:root[data-theme="light"] body::before {
+  background-image: radial-gradient(rgba(32, 33, 28, 0.2) 0.55px, transparent 0.8px);
+  opacity: 0.15;
+}
+
+:root[data-theme="light"] .site-header,
+:root[data-theme="light"] .site-header.is-scrolled {
+  background: rgba(244, 243, 239, 0.94);
+}
+
+:root[data-theme="light"] .site-nav {
+  background: #fbfbf7;
+}
+
+:root[data-theme="light"] .profile-image {
+  background: #e1e3dc;
+}
+
+:root[data-theme="light"] .work-shot {
+  background: #e1e3dc;
+}
+
+:root[data-theme="light"] .resume-copy .eyebrow::before {
+  color: rgba(25, 26, 23, 0.58);
+}
+
+@media (max-width: 860px) {
+  .header-row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0.55rem;
+  }
+
+  .theme-toggle {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .menu-toggle {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .header-cta {
+    display: none;
   }
 }

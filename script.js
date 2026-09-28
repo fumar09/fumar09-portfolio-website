@@ -27,6 +27,43 @@ function easeOutQuint(progress) {
     return 1 - Math.pow(1 - progress, 5);
 }
 
+function setupThemeToggle() {
+    const toggle = document.getElementById('themeToggle');
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+
+    if (!toggle) {
+        return;
+    }
+
+    const updateThemeControl = () => {
+        const isLight = document.documentElement.dataset.theme === 'light';
+        const label = isLight ? 'Switch to dark theme' : 'Switch to light theme';
+
+        toggle.setAttribute('aria-pressed', String(isLight));
+        toggle.setAttribute('aria-label', label);
+        toggle.setAttribute('title', label);
+
+        if (themeColor) {
+            themeColor.content = isLight ? '#f4f3ef' : '#141512';
+        }
+    };
+
+    updateThemeControl();
+
+    toggle.addEventListener('click', () => {
+        const nextTheme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+        document.documentElement.dataset.theme = nextTheme;
+
+        try {
+            localStorage.setItem('portfolio-theme', nextTheme);
+        } catch (error) {
+            // Keep the selected theme for this page view if storage is unavailable.
+        }
+
+        updateThemeControl();
+    });
+}
+
 function smoothScrollToTarget(target, offset = 0) {
     const start = window.scrollY;
     const destination = Math.max(0, start + target.getBoundingClientRect().top - offset);
@@ -304,6 +341,7 @@ function setupFloatingCta() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    setupThemeToggle();
     setupNavigation();
     setupReveal();
     setupFloatingCta();

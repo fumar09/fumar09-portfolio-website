@@ -17,8 +17,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <script>
+        try {
+            document.documentElement.dataset.theme = localStorage.getItem('portfolio-theme') || 'dark';
+        } catch (error) {
+            document.documentElement.dataset.theme = 'dark';
+        }
+        document.documentElement.classList.add('js');
+    </script>
     <link rel="stylesheet" href="style.css">
-    <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
     <a class="skip-link" href="#main">Skip to main content</a>
@@ -44,11 +51,16 @@
                     <a class="nav-link" href="#work">Work</a>
                     <a class="nav-link" href="#education">Education</a>
                     <a class="nav-link" href="#credentials">Certificates</a>
-                    <a class="nav-link" href="#expertise">Skills</a>
+                    <a class="nav-link" href="#tools">Tools</a>
+                    <a class="nav-link" href="#special-skills">Skills</a>
                     <a class="nav-link" href="#organizations">Community</a>
                     <a class="nav-link" href="#resume">Resume</a>
                 </nav>
 
+                <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light theme" aria-pressed="false" title="Switch to light theme">
+                    <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" /></svg>
+                    <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.3A8.5 8.5 0 0 1 8.7 3.8 8.5 8.5 0 1 0 20.2 15.3Z" /></svg>
+                </button>
                 <a class="button button-secondary header-cta" href="https://web.facebook.com/itsyourdawgcashyy/" target="_blank" rel="noopener noreferrer">Message Me</a>
             </div>
         </header>
@@ -89,7 +101,7 @@
                 </div>
             </section>
 
-            <section class="section" id="expertise">
+            <section class="section" id="tools">
                 <div class="container">
                     <div class="section-head reveal">
                         <p class="eyebrow">The toolkit</p>
@@ -97,13 +109,25 @@
                         <p>Technical support, web development, design, and customer-facing strengths from my resume.</p>
                     </div>
 
-                    <div class="tool-ribbon reveal" aria-label="Core design tools">
+                    <div class="tool-ribbon reveal" aria-label="Software and digital work tools">
                         <span class="tool-pill">Figma</span>
-                        <span class="tool-pill">Adobe Photoshop</span>
-                        <span class="tool-pill">Adobe Illustrator</span>
+                        <span class="tool-pill">Gmail</span>
+                        <span class="tool-pill">Google Docs</span>
+                        <span class="tool-pill">Google Sheets</span>
+                        <span class="tool-pill">Google Drive</span>
+                        <span class="tool-pill">Google Calendar</span>
+                        <span class="tool-pill">Google Slides</span>
+                        <span class="tool-pill">Google Meet</span>
+                        <span class="tool-pill">Microsoft Word</span>
+                        <span class="tool-pill">Microsoft Excel</span>
+                        <span class="tool-pill">Microsoft PowerPoint</span>
+                        <span class="tool-pill">Microsoft Outlook</span>
+                        <span class="tool-pill">Microsoft Teams</span>
                         <span class="tool-pill">HTML</span>
                         <span class="tool-pill">CSS</span>
                         <span class="tool-pill">JavaScript</span>
+                        <span class="tool-pill">AI-assisted image editing</span>
+                        <span class="tool-pill">AI-assisted video editing</span>
                         <span class="tool-pill">Web application development</span>
                         <span class="tool-pill">Visual graphic design</span>
                         <span class="tool-pill">Technical support</span>
@@ -378,7 +402,7 @@
                 </div>
             </section>
 
-            <section class="section" id="expertise">
+            <section class="section" id="special-skills">
                 <div class="container">
                     <div class="section-head reveal">
                         <p class="eyebrow">Beyond the job title</p>
@@ -394,6 +418,9 @@
                                 <li>Visual graphic design and fine arts</li>
                                 <li>Customer service and team leadership</li>
                                 <li>Technical support and computer hardware troubleshooting</li>
+                                <li>Advanced computer literacy</li>
+                                <li>Data encoding and product listing</li>
+                                <li>AI-assisted image and video editing</li>
                                 <li>Problem solving and team communication</li>
                             </ul>
                         </article>
