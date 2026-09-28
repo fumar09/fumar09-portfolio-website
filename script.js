@@ -264,97 +264,6 @@ function setupReveal() {
     elements.forEach((element) => observer.observe(element));
 }
 
-function setupContactBuilder() {
-    const nameInput = document.getElementById('contactName');
-    const projectType = document.getElementById('contactProjectType');
-    const timeline = document.getElementById('contactTimeline');
-    const goal = document.getElementById('contactGoal');
-    const preview = document.getElementById('contactPreviewText');
-    const copyButton = document.getElementById('copyProjectBrief');
-    const chips = Array.from(document.querySelectorAll('.contact-chip'));
-    let copyTimeout = null;
-
-    if (!preview || !copyButton) {
-        return;
-    }
-
-    const clearChipSelection = () => {
-        chips.forEach((chip) => chip.classList.remove('is-selected'));
-    };
-
-    const normalizeGoal = (value) => {
-        const trimmed = value.trim().replace(/\s+/g, ' ');
-        return trimmed.replace(/[.!?]+$/, '');
-    };
-
-    const buildMessage = () => {
-        const name = nameInput?.value.trim();
-        const project = projectType?.value || 'a UI/UX redesign';
-        const timing = timeline?.value || 'flexible';
-        const goalText = normalizeGoal(goal?.value || '');
-        const opening = name ? `Hello Connie, I am ${name}.` : 'Hello Connie,';
-        const mainGoal = goalText || 'making the layout cleaner and more professional';
-
-        return `${opening} I am interested in ${project} and I would like help with ${mainGoal}. My timeline is ${timing}.`;
-    };
-
-    [nameInput, projectType, timeline, goal].forEach((field) => {
-        if (!field) {
-            return;
-        }
-
-        const eventName = field.tagName === 'SELECT' ? 'change' : 'input';
-        field.addEventListener(eventName, () => {
-            if (field === goal) {
-                clearChipSelection();
-            }
-
-            preview.textContent = buildMessage();
-        });
-    });
-
-    chips.forEach((chip) => {
-        chip.addEventListener('click', () => {
-            const value = chip.getAttribute('data-chip-value') || '';
-
-            if (goal) {
-                goal.value = value;
-            }
-
-            chips.forEach((item) => item.classList.toggle('is-selected', item === chip));
-            preview.textContent = buildMessage();
-        });
-    });
-
-    copyButton.addEventListener('click', async () => {
-        const message = buildMessage();
-
-        try {
-            if (navigator.clipboard?.writeText) {
-                await navigator.clipboard.writeText(message);
-            } else {
-                const helper = document.createElement('textarea');
-                helper.value = message;
-                document.body.appendChild(helper);
-                helper.select();
-                document.execCommand('copy');
-                helper.remove();
-            }
-
-            copyButton.textContent = 'Copied';
-        } catch (error) {
-            copyButton.textContent = 'Copy failed';
-        }
-
-        window.clearTimeout(copyTimeout);
-        copyTimeout = window.setTimeout(() => {
-            copyButton.textContent = 'Copy Project Brief';
-        }, 1800);
-    });
-
-    preview.textContent = buildMessage();
-}
-
 function setupFloatingCta() {
     const floatingCta = document.querySelector('.floating-cta');
     const contactSection = document.getElementById('contact');
@@ -397,7 +306,6 @@ function setupFloatingCta() {
 document.addEventListener('DOMContentLoaded', () => {
     setupNavigation();
     setupReveal();
-    setupContactBuilder();
     setupFloatingCta();
 
     const year = document.getElementById('currentYear');
