@@ -44,7 +44,7 @@ function setupThemeToggle() {
         toggle.setAttribute('title', label);
 
         if (themeColor) {
-            themeColor.content = isLight ? '#f4f3ef' : '#141512';
+            themeColor.content = isLight ? '#F4F4ED' : '#070B14';
         }
     };
 
@@ -118,7 +118,9 @@ function setupNavigation() {
     });
     const sections = navLinks
         .map((link) => document.querySelector(link.getAttribute('href')))
-        .filter(Boolean);
+        .filter(Boolean)
+        .sort((first, second) => first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
+    const tabLinks = Array.from(document.querySelectorAll('.tabbar__tab[href^="#"]'));
 
     const closeMenu = () => {
         if (!nav || !toggle) {
@@ -148,12 +150,27 @@ function setupNavigation() {
                 link.removeAttribute('aria-current');
             }
         });
+
+        const mobileId = id === 'home' || id === 'work' || id === 'contact'
+            ? id
+            : ['credentials', 'resume'].includes(id) ? 'credentials' : 'experience';
+
+        tabLinks.forEach((link) => {
+            const isActive = link.getAttribute('href') === `#${mobileId}`;
+            if (isActive) {
+                link.setAttribute('aria-current', 'page');
+            } else {
+                link.removeAttribute('aria-current');
+            }
+        });
     };
 
     const updateActiveLink = () => {
         setHeaderState();
 
-        const activationLine = Math.max((header?.offsetHeight || 0) + 28, window.innerHeight * 0.32);
+        const activationLine = window.innerWidth < 1100
+            ? (header?.offsetHeight || 0) + 28
+            : window.innerHeight * 0.32;
         let currentId = sections[0]?.id || '';
 
         sections.forEach((section) => {
@@ -189,7 +206,7 @@ function setupNavigation() {
         event.preventDefault();
         closeMenu();
 
-        const offset = (header?.offsetHeight || 0) + 18;
+        const offset = window.innerWidth < 1100 ? (header?.offsetHeight || 0) + 18 : 28;
         await smoothScrollToTarget(target, offset);
 
         try {
