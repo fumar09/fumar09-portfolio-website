@@ -1,3 +1,0 @@
-Required Notice: Copyright (c) 2026 BrewedOps (https://github.com/brewed-ops/portfolio-template)
-
-This portfolio adapts the template's profile rail, bento layout, color palette, and mobile navigation patterns. The upstream template is provided under the PolyForm Noncommercial License 1.0.0 with an additional permission for building, hosting, and running your own portfolio, including a portfolio that promotes your services. The license terms and additional permission are available in the [upstream license](https://github.com/brewed-ops/portfolio-template/blob/main/LICENSE) and at <https://polyformproject.org/licenses/noncommercial/1.0.0>.
